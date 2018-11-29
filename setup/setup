@@ -1,0 +1,92 @@
+#!/bin/bash
+# Description:
+#  Some must-do steps for a new Raspberry Pi.
+#  And install some useful services
+# TODO:
+#
+# Version:
+#  20181123 - First release
+
+function basic()
+{
+	if [ -f ${HOME}/.bashrc ]; then
+		sed -i "s/^#alias ll=.*/alias ll='ls -lF'/g" ${HOME}/.bashrc
+		source ${HOME}/.bashrc
+	fi
+	sudo apt-get remove -y vim-common
+	sudo apt-get update
+	sudo apt-get upgrade -y
+	sudo apt-get install -y vim
+	echo "set nu" >> ${HOME}/vimrc.local
+	echo "syntax on" >> ${HOME}/vimrc.local
+	echo "set tabstop=4" >> ${HOME}/vimrc.local
+	sudo cp ${HOME}/vimrc.local /etc/vim/
+	rm ${HOME}/vimrc.local
+}
+
+function renamePi()
+{
+	partuuid=$(df | grep " /boot")
+	if [[ ${partuuid} =~ "mmcblk" ]]; then
+		partuuid="/dev/mmcblk0"
+	else
+		partuuid="${partuuid:0:8}"
+	fi
+	partuuid=$(sudo fdisk -l ${partuuid} | grep "Disk identifier")
+	partuuid="${partuuid: -8}"
+	piName=$(cat /etc/hostname)
+
+	sudo sed -i "s/${piName}/Raspi${partuuid}/g" /etc/hostname
+	sudo sed -i "s/^\(127\.\(.*\)\)[[:space:]]${piName}$/\1\tRaspi${partuuid}/g" /etc/hosts
+	echo -e "\nNow your pi name is: Raspi${partuuid}\nReboot to take effect\nYou can change it by editing /etc/hostname and /etc/hosts"
+}
+
+function setUserTimezone()
+{
+	tz[1]="Europe\/London"
+	tz[2]="Asia\/Shanghai"
+	tz[3]="Asia\/Urumqi"
+	tz[7]="America\/New_York"
+	tz[6]="America\/Chicago"
+	tz[5]="America\/Denver"
+	tz[4]="America\/Los_Angeles"
+	echo "Select your timezone:"
+	echo "1. UTC (London,UK)"
+	echo "2. UTC+8 (Beijing,China)"
+	echo "3. UTC+6 (Urumqi,China)"
+	echo "4. UTC-8 (PST, Los Angeles,US)"
+	echo "5. UTC-7 (MST, Denver,US)"
+	echo "6. UTC-6 (CST, Chicago,US)"
+	echo "7. UTC-5 (EST, New York,US)"
+	read -p "Input the number:" i
+	if [ -z $TZ ]; then
+		echo "TZ=${tz[${i}]/\\/}; export TZ" >> ${HOME}/.bashrc
+	else
+		sed -i "s/TZ=\(.*\)export TZ$/TZ='${tz[${i}]}'; export TZ/g" ${HOME}/.bashrc
+	fi
+	echo "Your personal (not SYSTEM!) timezone now is ${tz[${i}]/\\/}"
+	echo "Login again to take effect"
+}
+
+function setTimezone()
+{
+	sudo dpkg-reconfigure tzdata
+}
+
+case ${1} in
+	'basic')
+	basic ;;
+	'autorename')
+	renamePi ;;
+	'timezone')
+	setTimezone ;;
+	'utimezone')
+	setUserTimezone ;;
+	*)
+	renamePi
+	basic
+	setTimezone
+	;;
+esac
+
+exit 0
