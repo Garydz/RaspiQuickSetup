@@ -14,7 +14,7 @@ if [ ! -f ${conf} ]; then
 	touch ${conf}
 	echo "# Where should the files be put back," >> ${conf}
 	echo "# the path must be full path end with /" >> ${conf}
-        echo "toRoot=\"/home/pi/test/\"" >> ${conf}
+        echo "toRoot=\"${HOME}/test/\"" >> ${conf}
 	echo "#" >> ${conf}
 fi
 . ${conf}

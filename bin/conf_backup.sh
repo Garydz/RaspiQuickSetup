@@ -14,11 +14,11 @@ if [ ! -f ${conf} ]; then
 	touch ${conf}
 	echo "# Where should the files be backup," >> ${conf}
 	echo "# the path must be full path end with /" >> ${conf}
-	echo "bakFolderRoot=\"/home/pi/conf_bak/\"" >> ${conf}
+	echo "bakFolderRoot=\"${HOME}/conf_bak/\"" >> ${conf}
 	echo "#" >> ${conf}
 	echo "# Which files or folders will be backup," >> ${conf}
 	echo "# must be full path from /" >> ${conf}
-	echo "bakFiles=(\"/home/pi/.bashrc\" \"/home/pi/bin/\" \"/etc/fstab\")" >> ${conf}
+	echo "bakFiles=(\"${HOME}/.bashrc\" \"${HOME}/bin/\" \"/etc/fstab\")" >> ${conf}
 	echo "#" >> ${conf}
 fi
 . ${conf}
